@@ -1,9 +1,15 @@
 from setuptools import setup, find_packages  # type: ignore
+from pathlib import Path
+
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.md").read_text()
 
 setup(
     packages=find_packages(),
     author_email="gavrilovstepan78@gmail.com",
     name="prq",
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     version="0.0.10",
     py_modules=["prq"],
     entry_points={
