@@ -4,7 +4,7 @@ setup(
     packages=find_packages(),
     author_email="gavrilovstepan78@gmail.com",
     name="prq",
-    version="0.0.1",
+    version="0.0.10",
     py_modules=["prq"],
     entry_points={
         "console_scripts": [
