@@ -5,12 +5,13 @@ this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
 
 setup(
+    url="https://github.com/StepanGavrilov/PRQ",
     packages=find_packages(),
     author_email="gavrilovstepan78@gmail.com",
     name="prq",
     long_description=long_description,
     long_description_content_type='text/markdown',
-    version="0.0.13",
+    version="0.0.14",
     py_modules=["prq"],
     entry_points={
         "console_scripts": [
