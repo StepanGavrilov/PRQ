@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import (
+    absolute_import, division,
+    print_function, unicode_literals
+)
 
 import argparse
 import logging.config
@@ -14,6 +16,7 @@ from rq.contrib.legacy import cleanup_ghosts
 from rq.logutils import setup_loghandlers
 from rq.utils import import_attribute
 
+import prq
 from scripts import (
     add_standard_arguments, read_config_file,
     setup_default_arguments, setup_redis
@@ -23,23 +26,63 @@ logger = logging.getLogger(__name__)
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Starts an RQ worker.')
+    parser = argparse.ArgumentParser(
+        description='Starts an RQ worker.'
+    )
     add_standard_arguments(parser)
 
-    parser.add_argument('--burst', '-b', action='store_true', default=False,
-                        help='Run in burst mode (quit after all work is done)')  # noqa
-    parser.add_argument('--name', '-n', default=None, help='Specify a different name')
-    parser.add_argument('--worker-class', '-w', action='store', default='rq.Worker', help='RQ Worker class to use')
-    parser.add_argument('--path', '-P', default='.', help='Specify the import path.')
-    parser.add_argument('--results-ttl', default=None, help='Default results timeout to be used')
-    parser.add_argument('--worker-ttl', default=None, help='Default worker timeout to be used')
-    parser.add_argument('--verbose', '-v', action='store_true', default=False, help='Show more output')
-    parser.add_argument('--quiet', '-q', action='store_true', default=False, help='Show less output')
-    parser.add_argument('--sentry-dsn', action='store', default=None, metavar='URL',
-                        help='Report exceptions to this Sentry DSN')  # noqa
-    parser.add_argument('--pid', action='store', default=None,
-                        help='Write the process ID number to a file at the specified path')
-    parser.add_argument('queues', nargs='*', help='The queues to listen on (default: \'default\')')
+    parser.add_argument(
+        '--burst', '-b',
+        action='store_true',
+        default=False,
+        help='Run in burst mode (quit after all work is done)'
+    )  # noqa
+    parser.add_argument(
+        '--name', '-n',
+        default=None,
+        help='Specify a different name'
+    )
+    parser.add_argument(
+        '--worker-class', '-w',
+        action='store',
+        default='rq.Worker',
+        help='RQ Worker class to use'
+    )
+    parser.add_argument(
+        '--path', '-P',
+        default='.',
+        help='Specify the import path.'
+    )
+    parser.add_argument(
+        '--results-ttl',
+        default=None,
+        help='Default results timeout to be used'
+    )
+    parser.add_argument(
+        '--worker-ttl',
+        default=None,
+        help='Default worker timeout to be used'
+    )
+    parser.add_argument(
+        '--verbose',
+        '-v',
+        action='store_true',
+        default=False,
+        help='Show more output'
+    )
+    parser.add_argument(
+        '--quiet',
+        '-q',
+        action='store_true',
+        default=False,
+        help='Show less output'
+    )
+    parser.add_argument(
+        '--pid',
+        action='store',
+        default=None,
+        help='Write the process ID number to a file at the specified path'
+    )
 
     return parser.parse_args()
 
@@ -47,7 +90,6 @@ def parse_args():
 def setup_loghandlers_from_args(args):
     if args.verbose and args.quiet:
         raise RuntimeError("Flags --verbose and --quiet are mutually exclusive.")
-
     if args.verbose:
         level = 'DEBUG'
     elif args.quiet:
@@ -70,12 +112,10 @@ def main():
     setup_default_arguments(args, settings)
 
     # Worker specific default arguments
-    if not args.queues:
-        args.queues = settings.get('QUEUES', ['default'])
 
-    if args.sentry_dsn is None:
-        args.sentry_dsn = settings.get('SENTRY_DSN',
-                                       os.environ.get('SENTRY_DSN', None))
+    args.queues = settings.get(
+        'QUEUES', ["high", "medium", "low"]
+    )
 
     if args.pid:
         with open(os.path.expanduser(args.pid), "w") as fp:
@@ -89,10 +129,12 @@ def main():
 
     try:
         queues = list(map(Queue, args.queues))
-        w = worker_class(queues,
-                         name=args.name,
-                         default_worker_ttl=args.worker_ttl,
-                         default_result_ttl=args.results_ttl)
+        w: prq.GeventWorker = worker_class(
+            queues,
+            name=args.name,
+            default_worker_ttl=-1,
+            default_result_ttl=args.results_ttl
+        )
 
         # Should we configure Sentry?
         w.work(burst=args.burst)
