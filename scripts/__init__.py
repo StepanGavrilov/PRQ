@@ -14,6 +14,7 @@ import redis
 
 from rq import use_connection
 from rq.utils import first
+from scripts.job import Job  # type: ignore # noqa F401
 
 
 def add_standard_arguments(parser):

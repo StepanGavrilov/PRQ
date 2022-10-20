@@ -19,7 +19,7 @@ from rq.utils import import_attribute
 import prq
 from scripts import (
     add_standard_arguments, read_config_file,
-    setup_default_arguments, setup_redis
+    setup_default_arguments, setup_redis, Job
 )
 
 logger = logging.getLogger(__name__)
@@ -113,10 +113,6 @@ def main():
 
     # Worker specific default arguments
 
-    args.queues = settings.get(
-        'QUEUES', ["high", "medium", "low"]
-    )
-
     if args.pid:
         with open(os.path.expanduser(args.pid), "w") as fp:
             fp.write(str(os.getpid()))
@@ -126,14 +122,15 @@ def main():
 
     cleanup_ghosts()
     worker_class = import_attribute(args.worker_class)
-
+    queue_names = ["high", "medium", "low"]
     try:
-        queues = list(map(Queue, args.queues))
+        queues = [Queue(name=q_name, job_class=Job) for q_name in queue_names]
         w: prq.GeventWorker = worker_class(
             queues,
             name=args.name,
             default_worker_ttl=-1,
-            default_result_ttl=args.results_ttl
+            default_result_ttl=args.results_ttl,
+            job_class=Job
         )
 
         # Should we configure Sentry?
