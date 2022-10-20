@@ -10,6 +10,7 @@ import signal
 import gevent
 import gevent.pool
 # import gtools.tree  # type: ignore
+# import gtools
 from gevent import monkey, get_hub
 from gevent.hub import LoopExit
 from rq import Worker
@@ -60,6 +61,7 @@ class GeventWorker(Worker):
                 f"pid: {self.pid}\n"
                 f"state: {self.state}\n"
                 f"queues: {self.queues}\n"
+                f"job class: {self.job_class}\n"
                 f"=======\n"
         )
         super(GeventWorker, self).register_birth()
@@ -138,7 +140,9 @@ class GeventWorker(Worker):
                     result = self.dequeue_job_and_maintain_ttl(timeout)
 
                     # TODO add tree in future
+                    # import gtools.tree
                     # greenlet_tree = gtools.tree.Tree(all=True)
+                    # print(greenlet_tree)
                     # print(greenlet_tree.to_dict())
 
                     if result is None and burst:
