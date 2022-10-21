@@ -169,7 +169,7 @@ class GeventWorker(Worker):
         self.log.info(
             msg=f"Start executing a job - "
                 f"id: {job.id} "
-                f"ttl: {job.ttl} "
+                f"ttl: {'infinity' if not job.ttl else job.ttl} "
                 f"result ttl: {job.result_ttl}"
         )
         self.gevent_pool.spawn(self.perform_job, job, queue)

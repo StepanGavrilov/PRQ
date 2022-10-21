@@ -160,7 +160,7 @@ class Job:
         job.description = description or job.get_call_string()
         job.result_ttl = parse_timeout(result_ttl)
         job.failure_ttl = parse_timeout(failure_ttl)
-        job.ttl = parse_timeout(ttl)
+        job.ttl = None
         job.timeout = parse_timeout(timeout)
         job._status = status  # type: ignore
         job.meta = meta or {}  # type: ignore
