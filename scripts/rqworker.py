@@ -6,7 +6,6 @@ from __future__ import (
 )
 
 import argparse
-import logging.config
 import os
 import sys
 
@@ -19,10 +18,8 @@ from rq.utils import import_attribute
 import prq
 from scripts import (
     add_standard_arguments, read_config_file,
-    setup_default_arguments, setup_redis, Job
+    setup_default_arguments, setup_redis, Job,
 )
-
-logger = logging.getLogger(__name__)
 
 
 def parse_args():
@@ -133,7 +130,6 @@ def main():
             job_class=Job
         )
 
-        # Should we configure Sentry?
         w.work(burst=args.burst)
     except ConnectionError as e:
         print(e)
