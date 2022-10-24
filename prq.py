@@ -6,7 +6,6 @@ from __future__ import (
 )
 
 import signal
-
 import gevent
 import gevent.pool
 # import gtools.tree  # type: ignore
@@ -19,13 +18,10 @@ from rq.logutils import setup_loghandlers
 from rq.timeouts import BaseDeathPenalty, JobTimeoutException
 from rq.version import VERSION
 from rq.worker import StopRequested, green, blue
+from scripts.log import setup_rich_logger
+from scripts.job import Job
 
 monkey.patch_all()
-
-try:  # for rq >= 0.5.0
-    from rq.job import JobStatus, Job  # noqa F401
-except ImportError:  # for rq <= 0.4.6
-    from rq.job import Status as JobStatus  # noqa F401
 
 
 class GeventDeathPenalty(BaseDeathPenalty):
@@ -46,10 +42,12 @@ class GeventDeathPenalty(BaseDeathPenalty):
 
 
 class GeventWorker(Worker):
+    _name = "GEVENT"
     death_penalty_class = GeventDeathPenalty
 
     def __init__(self, *args, **kwargs):
         self.gevent_pool = gevent.pool.Pool(kwargs.get("pool_size", 20))
+        self.logger = setup_rich_logger()
         super(GeventWorker, self).__init__(*args, **kwargs)
 
     def register_birth(self):
@@ -62,6 +60,7 @@ class GeventWorker(Worker):
                 f"state: {self.state}\n"
                 f"queues: {self.queues}\n"
                 f"job class: {self.job_class}\n"
+                f"worker: {self._name}\n"
                 f"=======\n"
         )
         super(GeventWorker, self).register_birth()

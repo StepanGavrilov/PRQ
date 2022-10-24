@@ -93,19 +93,38 @@ def requeue_job(job_id: str, connection: 'Redis', serializer=None):
 
 
 class Job:
-    """A Job is just a convenient datastructure to pass around job (meta) data.
+    """
+    A Job is just a convenient datastructure to pass around job (meta) data.
     """
     redis_job_namespace_prefix = 'rq:job:'
 
     # Job construction
     @classmethod
-    def create(cls, func: t.Callable[..., t.Any], args=None, kwargs=None, connection: t.Optional['Redis'] = None,
-               result_ttl=None, ttl=None, status=None, description=None,
-               depends_on=None, timeout=None, id=None, origin=None, meta=None,
-               failure_ttl=None, serializer=None, *, on_success=None, on_failure=None) -> 'Job':
+    def create(
+            cls,
+            func: t.Callable[..., t.Any],
+            args=None,
+            kwargs=None,
+            connection: t.Optional['Redis'] = None,
+            result_ttl=None,
+            ttl=None,
+            status=None,
+            description=None,
+            depends_on=None,
+            timeout=None,
+            id=None,
+            origin=None,
+            meta=None,
+            failure_ttl=None,
+            serializer=None,
+            *,
+            on_success=None,
+            on_failure=None,
+    ) -> 'Job':
         """Creates a new Job instance for the given function, arguments, and
         keyword arguments.
         """
+
         if args is None:
             args = ()
         if kwargs is None:

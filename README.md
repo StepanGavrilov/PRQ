@@ -9,5 +9,11 @@ Based on
 * redis
 * gevent
 
+Environment variables
+* `PRQ_LOGS` - path to file with logs (512Mb data)
+
+
+
+
 
 `Examples coming soon :)`
