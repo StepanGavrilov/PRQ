@@ -11,7 +11,7 @@ setup(
     name="prq",
     long_description=long_description,
     long_description_content_type='text/markdown',
-    version="0.0.18",
+    version="0.0.19",
     py_modules=["prq"],
     entry_points={
         "console_scripts": [
