@@ -19,5 +19,5 @@ setup(
         ]
     },
     keywords=["python", "queue", "redis", "parallel", "workers", "tasks", "jobs"],
-    install_requires=["rq >= 0.4.6", "gevent >= 1.0"],
+    install_requires=["rq >= 0.4.6", "gevent >= 1.0", "pydantic", "rich"],
 )
