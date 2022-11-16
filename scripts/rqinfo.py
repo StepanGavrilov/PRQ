@@ -74,7 +74,6 @@ def show_queues(args):
             line = '%-12s %s %d' % (q.name, chart, count)
         else:
             line = 'queue %s %d' % (q.name, count)
-        print(line)
 
         num_jobs += count
 

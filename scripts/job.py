@@ -134,14 +134,6 @@ class Job:
         keyword arguments.
         """
 
-        print(
-            f"\n"
-            f"Creating a job"
-            f" \nmodule: {func.__module__}\n"
-            f"func: {func.__name__}\n"
-            f"desc: {description}\ndeps: {depends_on}\n"
-        )
-
         if args is None:
             args = ()
         if kwargs is None:
