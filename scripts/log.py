@@ -68,3 +68,7 @@ def setup_rich_logger():
         datefmt=logger_config.date_format,
         handlers=logger_config.handlers,
     )
+
+
+setup_rich_logger()
+lloger = logging.getLogger()

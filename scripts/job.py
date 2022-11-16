@@ -1,28 +1,36 @@
-import inspect
 import json
-import pickle
-import warnings
 import zlib
-import typing as t
+import pickle
+import inspect
 import asyncio
+import warnings
+import typing as t
 
-from collections.abc import Iterable
-from datetime import datetime, timedelta, timezone
 from enum import Enum
-from functools import partial
 from uuid import uuid4
 from redis import WatchError
+from functools import partial
+from scripts.log import lloger
+from rq.local import LocalStack
+from collections.abc import Iterable
+from rq.serializers import resolve_serializer
 from rq.connections import resolve_connection
+from datetime import datetime, timedelta, timezone
 from rq.exceptions import (
     DeserializationError, InvalidJobOperation,
     NoSuchJobError,
 )
-from rq.local import LocalStack
-from rq.registry import CanceledJobRegistry, FinishedJobRegistry, DeferredJobRegistry, StartedJobRegistry, \
+from rq.registry import (
+    CanceledJobRegistry, FinishedJobRegistry,
+    DeferredJobRegistry, StartedJobRegistry,
     ScheduledJobRegistry, FailedJobRegistry
-from rq.serializers import resolve_serializer
-from rq.utils import ensure_list, parse_timeout, import_attribute, utcnow, utcformat, str_to_date, get_version, \
-    get_call_string
+)
+from rq.utils import (
+    ensure_list, parse_timeout,
+    import_attribute, utcnow,
+    utcformat, str_to_date,
+    get_version, get_call_string
+)
 
 if t.TYPE_CHECKING:
     from rq.queue import Queue
@@ -97,10 +105,11 @@ class Job:
     A Job is just a convenient datastructure to pass around job (meta) data.
     """
     redis_job_namespace_prefix = 'rq:job:'
+    log = lloger
 
     # Job construction
     @classmethod
-    def create(
+    def create(  # NOSONAR
             cls,
             func: t.Callable[..., t.Any],
             args=None,
@@ -136,9 +145,9 @@ class Job:
             raise TypeError('{0!r} is not a valid kwargs dict'.format(kwargs))
 
         job = cls(connection=connection, serializer=serializer)
+
         if id is not None:
             job.set_id(id)
-
         if origin is not None:
             job.origin = origin
 
@@ -196,7 +205,6 @@ class Job:
                 dep.id if isinstance(dep, Job) else dep
                 for dep in depends_on_list
             ]
-
         return job
 
     def get_position(self):
@@ -272,7 +280,11 @@ class Job:
             return None
         if hasattr(self, '_dependency'):
             return self._dependency  # type: ignore
-        job = self.fetch(self._dependency_ids[0], connection=self.connection, serializer=self.serializer)
+        job = self.fetch(
+            self._dependency_ids[0],
+            connection=self.connection,
+            serializer=self.serializer  # type: ignore
+        )
         # type: ignore
         self._dependency = job
         return job
@@ -427,11 +439,11 @@ class Job:
                 job.restore(results[i])
                 jobs.append(job)
             else:
-                jobs.append(None)
+                jobs.append(None)  # type: ignore
 
         return jobs
 
-    def __init__(self, id: str = None, connection: t.Optional['Redis'] = None, serializer=None):
+    def __init__(self, id: str = None, connection: t.Optional['Redis'] = None, serializer=None):  # type: ignore
         self.connection = resolve_connection(connection)
         self._id = id
         self.created_at = utcnow()
@@ -727,10 +739,9 @@ class Job:
 
         mapping = self.to_dict(include_meta=include_meta)
 
-        if self.get_redis_server_version() >= (4, 0, 0):
-            connection.hset(key, mapping=mapping)
-        else:
-            connection.hmset(key, mapping)
+        # if self.get_redis_server_version() >= (4, 0, 0):
+        #     connection.hset(key, mapping=mapping)
+        connection.hmset(key, mapping)
 
     def get_redis_server_version(self):
         """Return Redis server version of connection"""
@@ -874,6 +885,7 @@ class Job:
     # Job execution
     def perform(self):  # noqa
         """Invokes the job function with the job arguments."""
+
         self.connection.persist(self.key)
         _job_stack.push(self)
         try:
@@ -894,10 +906,7 @@ class Job:
             'started_at': utcformat(self.started_at),
             'worker_name': worker_name
         }
-        if self.get_redis_server_version() >= (4, 0, 0):
-            pipeline.hset(self.key, mapping=mapping)
-        else:
-            pipeline.hmset(self.key, mapping)
+        pipeline.hmset(self.key, mapping)
 
     def _execute(self):
         result = self.func(*self.args, **self.kwargs)
@@ -1010,11 +1019,11 @@ class Job:
     @property
     def dependency_ids(self):
         dependencies = self.connection.smembers(self.dependencies_key)
-        return [Job.key_for(_id.decode())
+        return [Job.key_for(_id.decode())  # type: ignore
                 for _id in dependencies]
 
     def dependencies_are_met(self, parent_job: t.Optional['Job'] = None,
-                             pipeline: t.Optional['Pipeline'] = None, exclude_job_id: str = None):
+                             pipeline: t.Optional['Pipeline'] = None, exclude_job_id: str = None):  # type: ignore
         """Returns a boolean indicating if all of this job's dependencies are _FINISHED_
 
         If a pipeline is passed, all dependencies are WATCHed.

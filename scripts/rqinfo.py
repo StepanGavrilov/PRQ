@@ -11,12 +11,12 @@ import sys
 import time
 
 from redis.exceptions import ConnectionError
-from rq import get_failed_queue, Queue, Worker
-from prq.scripts import (
+from rq import get_failed_queue, Queue, Worker # type: ignore
+from prq.scripts import (  # type: ignore
     add_standard_arguments, read_config_file,
     setup_default_arguments, setup_redis
 )
-from rq.utils import gettermsize, make_colorizer
+from rq.utils import gettermsize, make_colorizer  # type: ignore
 
 red = make_colorizer('darkred')
 green = make_colorizer('darkgreen')
@@ -74,7 +74,6 @@ def show_queues(args):
             line = '%-12s %s %d' % (q.name, chart, count)
         else:
             line = 'queue %s %d' % (q.name, count)
-        print(line)
 
         num_jobs += count
 

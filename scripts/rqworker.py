@@ -122,12 +122,12 @@ def main():
     queue_names = ["high", "medium", "low"]
     try:
         queues = [Queue(name=q_name, job_class=Job) for q_name in queue_names]
-        w: prq.GeventWorker = worker_class(
+        w: prq.GeventWorker = worker_class(  # type: ignore
             queues,
             name=args.name,
             default_worker_ttl=-1,
             default_result_ttl=args.results_ttl,
-            job_class=Job
+            job_class=Job,
         )
 
         w.work(burst=args.burst)
