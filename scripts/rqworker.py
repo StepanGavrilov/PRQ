@@ -77,8 +77,7 @@ def setup_loghandlers_from_args(args):
 
 
 def main():
-    args = parse_args()
-
+    args: argparse.Namespace = parse_args()
     if args.path:
         sys.path = args.path.split(":") + sys.path
 
@@ -108,6 +107,7 @@ def main():
             default_worker_ttl=-1,
             default_result_ttl=args.results_ttl,
             job_class=Job,
+            redis_url=args.url,
         )
 
         w.work(burst=args.burst)

@@ -19,8 +19,11 @@ from rq.timeouts import BaseDeathPenalty, JobTimeoutException
 from rq.utils import utcnow
 from rq.version import VERSION
 from rq.worker import StopRequested, green, blue, yellow
+
+from scripts.redis_interactor import flush_job_pids
 from scripts.log import lloger
 from scripts.job import Job
+
 
 monkey.patch_all()
 
@@ -47,8 +50,10 @@ class GeventWorker(Worker):
     log = lloger
 
     def __init__(self, *args, **kwargs):
+        flushed = flush_job_pids(url=kwargs.pop("redis_url"))
         self.gevent_pool = gevent.pool.Pool(kwargs.get("pool_size", 20))
         super(GeventWorker, self).__init__(*args, **kwargs)
+        self.log.info(f"Flushed jobs: {flushed}")
 
     def register_birth(self):
         self.log.info(
