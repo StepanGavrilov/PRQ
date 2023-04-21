@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 
 def convert_bytes(b, to, bsize=1024):
-    a = {'k': 1, 'm': 2, 'g': 3, 't': 4, 'p': 5, 'e': 6}
+    a = {"k": 1, "m": 2, "g": 3, "t": 4, "p": 5, "e": 6}
     return b / (bsize ** a[to])
 
 
@@ -34,25 +34,20 @@ def get_logger_config():
     from rich.logging import RichHandler
 
     output_file_handler = logging.FileHandler(LOGGER_FILE)
-    handler_format = logging.Formatter(
-        LOGGER_FORMAT,
-        datefmt=DATE_FORMAT
-    )
+    handler_format = logging.Formatter(LOGGER_FORMAT, datefmt=DATE_FORMAT)
     output_file_handler.setFormatter(handler_format)
 
     return LoggerConfig(
         handlers=[
             RichHandler(
-                rich_tracebacks=True,
-                tracebacks_show_locals=True,
-                show_time=False
+                rich_tracebacks=True, tracebacks_show_locals=True, show_time=False
             ),
-            output_file_handler
+            output_file_handler,
         ],
         format=LOGGER_FORMAT,
         date_format=DATE_FORMAT,
         logger_file=LOGGER_FILE,
-        level=logging.CRITICAL
+        level=logging.CRITICAL,
     )
 
 

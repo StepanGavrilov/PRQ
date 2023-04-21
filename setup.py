@@ -10,7 +10,7 @@ setup(
     author_email="gavrilovstepan78@gmail.com",
     name="prq",
     long_description=long_description,
-    long_description_content_type='text/markdown',
+    long_description_content_type="text/markdown",
     version="0.0.20",
     py_modules=["prq"],
     entry_points={
