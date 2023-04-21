@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import (
-    absolute_import, division,
-    print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import argparse
 import os
@@ -11,21 +8,23 @@ import sys
 import time
 
 from redis.exceptions import ConnectionError
-from rq import get_failed_queue, Queue, Worker # type: ignore
+from rq import get_failed_queue, Queue, Worker  # type: ignore
 from prq.scripts import (  # type: ignore
-    add_standard_arguments, read_config_file,
-    setup_default_arguments, setup_redis
+    add_standard_arguments,
+    read_config_file,
+    setup_default_arguments,
+    setup_redis,
 )
 from rq.utils import gettermsize, make_colorizer  # type: ignore
 
-red = make_colorizer('darkred')
-green = make_colorizer('darkgreen')
-yellow = make_colorizer('darkyellow')
+red = make_colorizer("darkred")
+green = make_colorizer("darkgreen")
+yellow = make_colorizer("darkyellow")
 
 
 def pad(s, pad_to_length):
     """Pads the given string to the given length."""
-    return ('%-' + '%ds' % pad_to_length) % (s,)
+    return ("%-" + "%ds" % pad_to_length) % (s,)
 
 
 def get_scale(x):
@@ -39,8 +38,8 @@ def get_scale(x):
 
 def state_symbol(state):
     symbols = {
-        'busy': red('busy'),
-        'idle': green('idle'),
+        "busy": red("busy"),
+        "idle": green("idle"),
     }
     try:
         return symbols[state]
@@ -70,16 +69,16 @@ def show_queues(args):
     for q in qs:
         count = counts[q]
         if not args.raw:
-            chart = green('|' + '█' * int(ratio * count))
-            line = '%-12s %s %d' % (q.name, chart, count)
+            chart = green("|" + "█" * int(ratio * count))
+            line = "%-12s %s %d" % (q.name, chart, count)
         else:
-            line = 'queue %s %d' % (q.name, count)
+            line = "queue %s %d" % (q.name, count)
 
         num_jobs += count
 
     # Print summary when not in raw mode
     if not args.raw:
-        print('%d queues, %d jobs total' % (len(qs), num_jobs))
+        print("%d queues, %d jobs total" % (len(qs), num_jobs))
 
 
 def show_workers(args):
@@ -107,9 +106,14 @@ def show_workers(args):
         for w in ws:
             worker_queues = filter_queues(w.queue_names())
             if not args.raw:
-                print('%s %s: %s' % (w.name, state_symbol(w.get_state()), ', '.join(worker_queues)))
+                print(
+                    "%s %s: %s"
+                    % (w.name, state_symbol(w.get_state()), ", ".join(worker_queues))
+                )
             else:
-                print('worker %s %s %s' % (w.name, w.get_state(), ','.join(worker_queues)))
+                print(
+                    "worker %s %s %s" % (w.name, w.get_state(), ",".join(worker_queues))
+                )
     else:
         # Create reverse lookup table
         queues = dict([(q, []) for q in qs])
@@ -123,50 +127,92 @@ def show_workers(args):
         for q in queues:
             if queues[q]:
                 queues_str = ", ".join(
-                    sorted(map(lambda w: '%s (%s)' % (w.name, state_symbol(w.get_state())), queues[q])))  # noqa
+                    sorted(
+                        map(
+                            lambda w: "%s (%s)" % (w.name, state_symbol(w.get_state())),
+                            queues[q],
+                        )
+                    )
+                )  # noqa
             else:
-                queues_str = '–'
-            print('%s %s' % (pad(q.name + ':', max_qname + 1), queues_str))
+                queues_str = "–"
+            print("%s %s" % (pad(q.name + ":", max_qname + 1), queues_str))
 
     if not args.raw:
-        print('%d workers, %d queues' % (len(ws), len(qs)))
+        print("%d workers, %d queues" % (len(ws), len(qs)))
 
 
 def show_both(args):
     show_queues(args)
     if not args.raw:
-        print('')
+        print("")
     show_workers(args)
     if not args.raw:
-        print('')
+        print("")
         import datetime
-        print('Updated: %s' % datetime.datetime.now())
+
+        print("Updated: %s" % datetime.datetime.now())
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='RQ command-line monitor.')
+    parser = argparse.ArgumentParser(description="RQ command-line monitor.")
     add_standard_arguments(parser)
-    parser.add_argument('--path', '-P', default='.', help='Specify the import path.')
-    parser.add_argument('--interval', '-i', metavar='N', type=float, default=2.5,
-                        help='Updates stats every N seconds (default: don\'t poll)')  # noqa
-    parser.add_argument('--raw', '-r', action='store_true', default=False,
-                        help='Print only the raw numbers, no bar charts')  # noqa
-    parser.add_argument('--only-queues', '-Q', dest='only_queues', default=False, action='store_true',
-                        help='Show only queue info')  # noqa
-    parser.add_argument('--only-workers', '-W', dest='only_workers', default=False, action='store_true',
-                        help='Show only worker info')  # noqa
-    parser.add_argument('--by-queue', '-R', dest='by_queue', default=False, action='store_true',
-                        help='Shows workers by queue')  # noqa
-    parser.add_argument('--empty-failed-queue', '-X', dest='empty_failed_queue', default=False, action='store_true',
-                        help='Empties the failed queue, then quits')  # noqa
-    parser.add_argument('queues', nargs='*', help='The queues to poll')
+    parser.add_argument("--path", "-P", default=".", help="Specify the import path.")
+    parser.add_argument(
+        "--interval",
+        "-i",
+        metavar="N",
+        type=float,
+        default=2.5,
+        help="Updates stats every N seconds (default: don't poll)",
+    )  # noqa
+    parser.add_argument(
+        "--raw",
+        "-r",
+        action="store_true",
+        default=False,
+        help="Print only the raw numbers, no bar charts",
+    )  # noqa
+    parser.add_argument(
+        "--only-queues",
+        "-Q",
+        dest="only_queues",
+        default=False,
+        action="store_true",
+        help="Show only queue info",
+    )  # noqa
+    parser.add_argument(
+        "--only-workers",
+        "-W",
+        dest="only_workers",
+        default=False,
+        action="store_true",
+        help="Show only worker info",
+    )  # noqa
+    parser.add_argument(
+        "--by-queue",
+        "-R",
+        dest="by_queue",
+        default=False,
+        action="store_true",
+        help="Shows workers by queue",
+    )  # noqa
+    parser.add_argument(
+        "--empty-failed-queue",
+        "-X",
+        dest="empty_failed_queue",
+        default=False,
+        action="store_true",
+        help="Empties the failed queue, then quits",
+    )  # noqa
+    parser.add_argument("queues", nargs="*", help="The queues to poll")
     return parser.parse_args()
 
 
 def interval(val, func, args):
     while True:
         if val and sys.stdout.isatty():
-            os.system('clear')
+            os.system("clear")
         func(args)
         if val and sys.stdout.isatty():
             time.sleep(val)
@@ -178,7 +224,7 @@ def main():
     args = parse_args()
 
     if args.path:
-        sys.path = args.path.split(':') + sys.path
+        sys.path = args.path.split(":") + sys.path
 
     settings = {}
     if args.config:
@@ -191,7 +237,7 @@ def main():
     try:
         if args.empty_failed_queue:
             num_jobs = get_failed_queue().empty()
-            print('{} jobs removed from failed queue'.format(num_jobs))
+            print("{} jobs removed from failed queue".format(num_jobs))
         else:
             if args.only_queues:
                 func = show_queues
